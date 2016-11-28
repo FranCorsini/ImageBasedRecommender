@@ -1,0 +1,60 @@
+package net.recommenders.plista.rec;
+import java.io.*;
+
+public class ImageEvaluationThread extends Thread {
+   private int number_faces; 
+   private String image_url;
+   private Long domainId;
+   private Long itemId;
+   private Long category;
+   private Boolean recommendable;
+   private int confidence;
+   private PRCategoryBasedRecommender parent;
+   
+   ImageEvaluationThread(Long _domainId, Long _itemId, Long _category, Boolean _recommendable, String _image_url,int _confidence, PRCategoryBasedRecommender _parent){
+        domainId = _domainId;
+        itemId = _itemId;
+        category = _category;
+        recommendable = _recommendable;
+        image_url = _image_url;
+        confidence = _confidence;
+        parent = _parent;
+    }
+   public void run() {
+	    String call = "python face_detection.py " + image_url;
+		String ret = null;
+		try{
+			Process p = Runtime.getRuntime().exec(call);
+			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                        try{
+		    Process p = Runtime.getRuntime().exec(call);
+			BufferedReader in = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			BufferedReader in_err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
+			String s;
+			while((s = in.readLine())==null && (in_err.readLine()==null)){
+				//TODO terminate after a while and return nothing
+			}
+		    while((s = in.readLine())==null && (in_err.readLine()==null)){
+				//TODO terminate after a while and return nothing
+			}
+			    callIt(Integer.parseInt(s));
+			}  catch (IOException e) {
+				System.out.println(e);
+			}
+			
+                        //these value needs to be tuned
+                        if (number_faces == 1){
+                            confidence = confidence + 9; // so starts with 10
+                        }
+                        else if (number_faces > 1){
+                            confidence = confidence + 4; // so starts with 5
+                        }
+		}  catch (IOException e) {
+			System.out.println(e);
+		}
+                parent.update(domainId, itemId, category, recommendable, confidence);
+                parent.set_face(itemId, number_faces);
+	}
+
+      
+}
